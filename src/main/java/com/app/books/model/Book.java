@@ -1,27 +1,55 @@
 package com.app.books.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Entity
-@Table(name="books")
+@Table(name = "books")
 public class Book {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(unique = true)
     private String title;
-    private String authors;
-    private String subjects;
-    private String languages;
-    private String formats;
 
-    public Book(DataBook dataBook){
-        this.title = dataBook.title();
-        this.authors = dataBook.authors();
-        this.subjects = dataBook.subjects();
-        this.languages = dataBook.languages();;
-        this.formats = dataBook.formats();
+    @ManyToMany(mappedBy = "books",cascade = { CascadeType.ALL })
+    @JsonProperty("authors")
+    private List<Author> authors = new ArrayList<>();
+
+    private List<String> languages = new ArrayList<>();
+    @JsonProperty("download_count")
+    private Long download;
+
+    private List<String> subjects = new ArrayList<>();
+
+    public Book() {
+
     }
+    public Book(DatosBook dataBook){
+        this.title = dataBook.getTitle();
+        if (dataBook.getAuthors() != null && !dataBook.getAuthors().isEmpty()) {
+            this.authors = dataBook.getAuthors(); // O maneja una lista de autores si corresponde
+        }
+        this.languages = dataBook.getLanguages();
+        this.download = dataBook.getDownload();
+        this.subjects = dataBook.getSubjects();
+    }
+
+    @Override
+    public String toString() {
+        return
+                ", title='" + title + '\'' +
+                ", authors=" + authors +
+                ", languages=" + languages +
+                ", download=" + download +
+                ", subjects=" + subjects;
+    }
+
     public Long getId() {
         return id;
     }
@@ -38,35 +66,35 @@ public class Book {
         this.title = title;
     }
 
-    public String getAuthors() {
+    public List<Author> getAuthors() {
         return authors;
     }
 
-    public void setAuthors(String authors) {
+    public void setAuthors(List<Author> authors) {
         this.authors = authors;
     }
 
-    public String getSubjects() {
-        return subjects;
-    }
 
-    public void setSubjects(String subjects) {
-        this.subjects = subjects;
-    }
-
-    public String getLanguages() {
+    public List<String> getLanguages() {
         return languages;
     }
 
-    public void setLanguages(String languages) {
+    public void setLanguages(List<String> languages) {
         this.languages = languages;
     }
-
-    public String getFormats() {
-        return formats;
+    public Long getDownload() {
+        return download;
     }
 
-    public void setFormats(String formats) {
-        this.formats = formats;
+    public void setDownload(Long download) {
+        this.download = download;
+    }
+
+    public List<String> getSubjects() {
+        return subjects;
+    }
+
+    public void setSubjects(List<String> subjects) {
+        this.subjects = subjects;
     }
 }
