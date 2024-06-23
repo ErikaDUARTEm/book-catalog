@@ -97,6 +97,7 @@ public class Principal {
                             // Verifica que la lista de autores no sea nula ni esté vacía
                             if (newBook.getAuthors() != null && !newBook.getAuthors().isEmpty()) {
                                 System.out.println("Libro encontrado: " );
+                                repository.save(newBook);
                                 formatBook(newBook);
 
                             } else {
@@ -171,7 +172,9 @@ public class Principal {
         return authorsAlive;
     }
    private List<Book> findBookByLanguage() {
-        var booksSpanish = repository.findBookByLanguage("es");
+       System.out.println("Escribe 'es' si deseas ver la lista de libros en español o 'en' si deseas ver la lista de libros en inglés");
+       var idioma = scanner.nextLine();
+       var booksSpanish = repository.findBookByLanguage(idioma);
         for(Book book :booksSpanish){
             if(book.getLanguages() != null && !book.getLanguages().isEmpty()){
             formatBook(book);
