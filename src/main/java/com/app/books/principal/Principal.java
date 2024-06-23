@@ -34,6 +34,7 @@ public class Principal {
                     1- Buscar libro
                     2- Listar libros buscados
                     3- Listar Autores
+                    4- Listar todos los autores vivos despues de 1925
                     0- Salir
                     """;
             System.out.println(menu);
@@ -48,6 +49,10 @@ public class Principal {
                     break;
                 case 3:
                     getAllAuthors();
+                    break;
+                case 4:
+                    getAllAuthorsAliveAfter1925();
+                    break;
                 case 0:
                     System.out.println("Cerrando la aplicación");
                     break;
@@ -57,7 +62,7 @@ public class Principal {
         }
     }
 
-    private void searchBook(){
+    private void searchBook() {
         var books = getDatosBook();
         List<DatosBook> datosBooks = BookConverter.convertToDatosBookList(books);
         datosBooks.stream()
@@ -79,23 +84,25 @@ public class Principal {
 
                 });
     }
-    private Data getDatosBook(){
+
+    private Data getDatosBook() {
         System.out.println("Escribe el nombre del libro que deseas buscar");
         var nameBook = scanner.nextLine();
         var json = consumoApi.getDatos(URL_BASE + "?search=" + nameBook.replace(" ", "+"));
         Data datos = conversor.getDatos(json, Data.class);
         return datos;
     }
-    @Transactional
-    private void getAllBooks(){
 
-        var  books = repository.getAllBooks();
+    @Transactional
+    private void getAllBooks() {
+
+        var books = repository.getAllBooks();
         for (Book book : books) {
             System.out.println("Título: " + book.getTitle());
 
             // Mostrar autores
 
-                System.out.print("Autores: " + book.getAuthors());
+            System.out.print("Autores: " + book.getAuthors());
 
             System.out.println();
 
@@ -105,18 +112,33 @@ public class Principal {
             System.out.println("-----------------------------");
         }
     }
-    private List<Author> getAllAuthors(){
+
+    private List<Author> getAllAuthors() {
         var authors = repository.getAllAuthors();
-        for(Author autor : authors){
-            if(autor.getName()  != null && !autor.getName().isEmpty()){
+        for (Author autor : authors) {
+            if (autor.getName() != null && !autor.getName().isEmpty()) {
+                System.out.println("------------------------");
                 System.out.println("Autor: " + autor.getName());
                 System.out.println("Fecha de Nacimiento: " + autor.getBirthYear());
-                System.out.println("Fecha de muerte: "+ autor.getDeathYear());
+                System.out.println("Fecha de muerte: " + autor.getDeathYear());
                 System.out.println("------------------------");
             }
         }
         return authors;
     }
 
+    private List<Author> getAllAuthorsAliveAfter1925() {
+        var authorsAlive = repository.getAllAuthorsAliveAfter1925();
+        for (Author autor : authorsAlive) {
+            if (autor.getName() != null && !autor.getName().isEmpty()) {
+                System.out.println("------------------------");
+                System.out.println("Autor: " + autor.getName());
+                System.out.println("Fecha de Nacimiento: " + autor.getBirthYear());
+                System.out.println("Fecha de muerte: " + autor.getDeathYear());
+                System.out.println("------------------------");
+            }
+        }
+        return authorsAlive;
+    }
 }
 
