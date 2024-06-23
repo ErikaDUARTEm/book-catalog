@@ -33,6 +33,7 @@ public class Principal {
             var menu = """
                     1- Buscar libro
                     2- Listar libros buscados
+                    3- Listar Autores
                     0- Salir
                     """;
             System.out.println(menu);
@@ -45,6 +46,8 @@ public class Principal {
                 case 2:
                     getAllBooks();
                     break;
+                case 3:
+                    getAllAuthors();
                 case 0:
                     System.out.println("Cerrando la aplicación");
                     break;
@@ -101,6 +104,18 @@ public class Principal {
             System.out.println("Temas: " + book.getSubjects());
             System.out.println("-----------------------------");
         }
+    }
+    private List<Author> getAllAuthors(){
+        var authors = repository.getAllAuthors();
+        for(Author autor : authors){
+            if(autor.getName()  != null && !autor.getName().isEmpty()){
+                System.out.println("Autor: " + autor.getName());
+                System.out.println("Fecha de Nacimiento: " + autor.getBirthYear());
+                System.out.println("Fecha de muerte: "+ autor.getDeathYear());
+                System.out.println("------------------------");
+            }
+        }
+        return authors;
     }
 
 }
