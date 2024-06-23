@@ -21,4 +21,9 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
      @Query("SELECT DISTINCT a FROM Author a WHERE deathYear >= 1925")
      List<Author> getAllAuthorsAliveAfter1925();
+     @Query("SELECT b FROM Book b WHERE :language IN (b.languages)")
+     List<Book> findBookByLanguage(String language);
+
+     @Query("SELECT DISTINCT b FROM Book b WHERE b.title = :title")
+     Book findByTitle(String title);
 }

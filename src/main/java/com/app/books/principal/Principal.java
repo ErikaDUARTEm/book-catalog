@@ -1,6 +1,7 @@
 package com.app.books.principal;
 
 
+import com.app.books.dto.BookDTO;
 import com.app.books.model.Author;
 import com.app.books.model.Book;
 import com.app.books.model.Data;
@@ -11,8 +12,10 @@ import com.app.books.service.ConsumoApi;
 import com.app.books.service.ConvierteDatos;
 import jakarta.transaction.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Principal {
     private Scanner scanner = new Scanner(System.in);
@@ -35,6 +38,7 @@ public class Principal {
                     2- Listar libros buscados
                     3- Listar Autores
                     4- Listar todos los autores vivos despues de 1925
+                    5- Listar los libros que están en español
                     0- Salir
                     """;
             System.out.println(menu);
@@ -53,6 +57,9 @@ public class Principal {
                 case 4:
                     getAllAuthorsAliveAfter1925();
                     break;
+                case 5:
+                    findBookByLanguage();
+                    break;
                 case 0:
                     System.out.println("Cerrando la aplicación");
                     break;
@@ -61,7 +68,47 @@ public class Principal {
             }
         }
     }
+    private void searchBook() {
+        System.out.println("Escribe el nombre del libro que deseas buscar");
+        var nameBook = scanner.nextLine().toLowerCase();
 
+        Book existingBook = repository.findByTitle(nameBook);
+
+        if (existingBook != null) {
+            // El libro ya existe en la base de datos
+            System.out.println(existingBook); // Muestra el libro existente
+        } else {
+            // El libro no existe en la base de datos, procede a buscarlo en la API y guardarlo si es necesario
+            var json = consumoApi.getDatos(URL_BASE + "?search=" + nameBook.replace(" ", "+"));
+            Data datos = conversor.getDatos(json, Data.class);
+
+
+            if (datos != null) {
+                List<DatosBook> datosBooks = BookConverter.convertToDatosBookList(datos);
+                datosBooks.stream()
+                        .findFirst()
+                        .ifPresent(datosBook -> {
+
+                            // Verifica que la lista de autores no sea nula ni esté vacía
+                            Book newBook = new Book(datosBook);
+
+
+                            // Verifica que la lista de autores no sea nula ni esté vacía
+                            if (newBook.getAuthors() != null && !newBook.getAuthors().isEmpty()) {
+                                System.out.println("Libro encontrado: " );
+                                formatBook(newBook);
+
+                            } else {
+                                System.out.println("El libro no tiene autores asignados, no se puede guardar.");
+                            }
+                        });
+                }else{
+                      System.out.println("No se encontró ningún libro con el nombre '" + nameBook + "'.");
+                  }
+            }
+    }
+
+/*
     private void searchBook() {
         var books = getDatosBook();
         List<DatosBook> datosBooks = BookConverter.convertToDatosBookList(books);
@@ -91,25 +138,15 @@ public class Principal {
         var json = consumoApi.getDatos(URL_BASE + "?search=" + nameBook.replace(" ", "+"));
         Data datos = conversor.getDatos(json, Data.class);
         return datos;
-    }
+    }*/
 
     @Transactional
     private void getAllBooks() {
 
         var books = repository.getAllBooks();
         for (Book book : books) {
-            System.out.println("Título: " + book.getTitle());
+            formatBook(book);
 
-            // Mostrar autores
-
-            System.out.print("Autores: " + book.getAuthors());
-
-            System.out.println();
-
-            System.out.println("Idiomas: " + book.getLanguages());
-            System.out.println("Descargas: " + book.getDownload());
-            System.out.println("Temas: " + book.getSubjects());
-            System.out.println("-----------------------------");
         }
     }
 
@@ -117,11 +154,7 @@ public class Principal {
         var authors = repository.getAllAuthors();
         for (Author autor : authors) {
             if (autor.getName() != null && !autor.getName().isEmpty()) {
-                System.out.println("------------------------");
-                System.out.println("Autor: " + autor.getName());
-                System.out.println("Fecha de Nacimiento: " + autor.getBirthYear());
-                System.out.println("Fecha de muerte: " + autor.getDeathYear());
-                System.out.println("------------------------");
+                formatAuthor(autor);
             }
         }
         return authors;
@@ -131,14 +164,35 @@ public class Principal {
         var authorsAlive = repository.getAllAuthorsAliveAfter1925();
         for (Author autor : authorsAlive) {
             if (autor.getName() != null && !autor.getName().isEmpty()) {
-                System.out.println("------------------------");
-                System.out.println("Autor: " + autor.getName());
-                System.out.println("Fecha de Nacimiento: " + autor.getBirthYear());
-                System.out.println("Fecha de muerte: " + autor.getDeathYear());
-                System.out.println("------------------------");
+                formatAuthor(autor);
             }
         }
         return authorsAlive;
     }
+   private List<Book> findBookByLanguage() {
+        var booksSpanish = repository.findBookByLanguage("es");
+        for(Book book :booksSpanish){
+            if(book.getLanguages() != null && !book.getLanguages().isEmpty()){
+            formatBook(book);
+            }
+        }
+        return booksSpanish;
+   }
+   private void formatBook (Book book){
+       System.out.println("-----------------------------");
+       System.out.println("Titulo: " + book.getTitle());
+       System.out.println("Autores: " + book.getAuthors());
+       System.out.println("Idiomas: " + book.getLanguages());
+       System.out.println("Número de Descargas: " + book.getDownload());
+       System.out.println("Genero: " + book.getSubjects());
+       System.out.println("-----------------------------");
+   }
+   private void formatAuthor(Author author){
+       System.out.println("------------------------");
+       System.out.println("Autor: " + author.getName());
+       System.out.println("Fecha de Nacimiento: " + author.getBirthYear());
+       System.out.println("Fecha de muerte: " + author.getDeathYear());
+       System.out.println("------------------------");
+   }
 }
 
