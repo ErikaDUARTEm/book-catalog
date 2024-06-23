@@ -16,6 +16,7 @@ public class BooksApplication implements CommandLineRunner {
 
 	@Autowired
 	private BookRepository repository;
+
 	@Override
 	public void run(String... args) throws Exception {
 		Principal principal = new Principal(repository);

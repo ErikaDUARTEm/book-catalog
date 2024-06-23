@@ -1,6 +1,7 @@
 package com.app.books.principal;
 
 
+import com.app.books.model.Author;
 import com.app.books.model.Book;
 import com.app.books.model.Data;
 import com.app.books.model.DatosBook;
@@ -8,6 +9,7 @@ import com.app.books.repository.BookRepository;
 import com.app.books.service.BookConverter;
 import com.app.books.service.ConsumoApi;
 import com.app.books.service.ConvierteDatos;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Scanner;
@@ -20,7 +22,9 @@ public class Principal {
     private BookRepository repository;
 
     public Principal(BookRepository repository) {
+
         this.repository = repository;
+
     }
 
     public void viewMenu() {
@@ -28,6 +32,7 @@ public class Principal {
         while (opcion != 0) {
             var menu = """
                     1- Buscar libro
+                    2- Listar libros buscados
                     0- Salir
                     """;
             System.out.println(menu);
@@ -36,6 +41,9 @@ public class Principal {
             switch (opcion) {
                 case 1:
                     searchBook();
+                    break;
+                case 2:
+                    getAllBooks();
                     break;
                 case 0:
                     System.out.println("Cerrando la aplicación");
@@ -56,9 +64,11 @@ public class Principal {
 
                     // Verifica que la lista de autores no sea nula ni esté vacía
                     if (book.getAuthors() != null && !book.getAuthors().isEmpty()) {
+
                         repository.save(book);
-                        System.out.println("Libro guardado correctamente: " + book.toString());
-                   } else {
+                        System.out.println("Libro guardado correctamente: " + book.getTitle());
+                        System.out.println(book.getAuthors());
+                    } else {
                         System.out.println("El libro no tiene autores asignados, no se puede guardar.");
                         // Aquí puedes manejar la lógica adicional si es necesario
                     }
@@ -73,7 +83,25 @@ public class Principal {
         Data datos = conversor.getDatos(json, Data.class);
         return datos;
     }
+    @Transactional
+    private void getAllBooks(){
 
+        var  books = repository.getAllBooks();
+        for (Book book : books) {
+            System.out.println("Título: " + book.getTitle());
+
+            // Mostrar autores
+
+                System.out.print("Autores: " + book.getAuthors());
+
+            System.out.println();
+
+            System.out.println("Idiomas: " + book.getLanguages());
+            System.out.println("Descargas: " + book.getDownload());
+            System.out.println("Temas: " + book.getSubjects());
+            System.out.println("-----------------------------");
+        }
+    }
 
 }
 

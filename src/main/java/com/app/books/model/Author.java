@@ -18,7 +18,7 @@ public class Author {
     @JsonProperty("death_year")
     private Integer deathYear;
 
-    @ManyToMany()
+    @ManyToMany(mappedBy = "authors", fetch = FetchType.EAGER)
     private List<Book> books;
 
     public List<Book> getBooks() {
@@ -64,7 +64,7 @@ public class Author {
     @Override
     public String toString() {
         return
-                ", name='" + name + '\'' +
+                "name='" + name + '\'' +
                 ", birthYear=" + birthYear +
                 ", deathYear=" + deathYear;
     }

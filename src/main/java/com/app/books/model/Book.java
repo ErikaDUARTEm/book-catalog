@@ -2,10 +2,8 @@ package com.app.books.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -17,7 +15,7 @@ public class Book {
     @Column(unique = true)
     private String title;
 
-    @ManyToMany(mappedBy = "books",cascade = { CascadeType.ALL })
+    @ManyToMany(cascade = { CascadeType.ALL },fetch = FetchType.EAGER)
     @JsonProperty("authors")
     private List<Author> authors = new ArrayList<>();
 
@@ -33,7 +31,7 @@ public class Book {
     public Book(DatosBook dataBook){
         this.title = dataBook.getTitle();
         if (dataBook.getAuthors() != null && !dataBook.getAuthors().isEmpty()) {
-            this.authors = dataBook.getAuthors(); // O maneja una lista de autores si corresponde
+            this.authors = dataBook.getAuthors();
         }
         this.languages = dataBook.getLanguages();
         this.download = dataBook.getDownload();
@@ -43,7 +41,7 @@ public class Book {
     @Override
     public String toString() {
         return
-                ", title='" + title + '\'' +
+                "title='" + title + '\'' +
                 ", authors=" + authors +
                 ", languages=" + languages +
                 ", download=" + download +
