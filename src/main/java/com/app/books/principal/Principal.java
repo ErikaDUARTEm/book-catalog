@@ -13,6 +13,7 @@ import com.app.books.service.ConvierteDatos;
 import jakarta.transaction.Transactional;
 
 import java.util.Collections;
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -176,6 +177,16 @@ public class Principal {
             formatBook(book);
             }
         }
+
+       // Obtener estadísticas sobre el campo download_count
+           DoubleSummaryStatistics stats = booksSpanish.stream()
+                   .filter(book -> book.getDownload() > 0)
+                   .collect(Collectors.summarizingDouble(Book::getDownload));
+       System.out.println("Cantidad media de descargas: " + stats.getAverage());
+       System.out.println("Cantidad máxima de descargas: " + stats.getMax());
+       System.out.println("Cantidad mínima de descargas: "+ stats.getMin());
+       System.out.println("Cantidad de registros evaluados para calcular las estadisticas: " + stats.getCount());
+
         return booksSpanish;
    }
    private void formatBook (Book book){
