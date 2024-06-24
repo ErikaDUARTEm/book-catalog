@@ -15,7 +15,7 @@ public class Book {
     @Column(unique = true)
     private String title;
 
-    @ManyToMany(cascade = { CascadeType.ALL },fetch = FetchType.EAGER)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE},fetch = FetchType.EAGER)
     @JsonProperty("authors")
     private List<Author> authors = new ArrayList<>();
 

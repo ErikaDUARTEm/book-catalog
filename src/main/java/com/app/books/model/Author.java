@@ -42,7 +42,7 @@ public class Author {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = name.toUpperCase().replace(",", "");
     }
 
     public Integer getBirthYear() {
