@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "books")
@@ -17,6 +16,11 @@ public class Book {
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE},fetch = FetchType.EAGER)
     @JsonProperty("authors")
+    @JoinTable(
+            name = "books_authors",
+            joinColumns = @JoinColumn(name = "books_id"),
+            inverseJoinColumns = @JoinColumn(name = "authors_id")
+    )
     private List<Author> authors = new ArrayList<>();
 
     private List<String> languages = new ArrayList<>();

@@ -18,7 +18,7 @@ public class Author {
     @JsonProperty("death_year")
     private Integer deathYear;
 
-    @ManyToMany(mappedBy = "authors", fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "authors", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Book> books;
 
     public List<Book> getBooks() {

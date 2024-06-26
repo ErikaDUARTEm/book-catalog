@@ -11,6 +11,7 @@ import com.app.books.service.BookConverter;
 import com.app.books.service.ConsumoApi;
 import com.app.books.service.ConvierteDatos;
 import jakarta.transaction.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,7 +39,7 @@ public class Principal {
                     2- Listar libros buscados
                     3- Listar Autores
                     4- Listar todos los autores vivos despues de 1925
-                    5- Listar los libros que están en español
+                    5- Listar los libros que están en inglés o español
                     6- Escribe el nombre del autor
                     0- Salir
                     """;
@@ -77,52 +78,50 @@ public class Principal {
             }
         }
     }
+
     @Transactional
     private void searchBook() {
         System.out.println("Escribe el nombre del libro que deseas buscar");
-        var nameBook = scanner.nextLine().toLowerCase();
+        String nameBook = scanner.nextLine().trim().toLowerCase();
 
-        Book existingBook = repository.findByTitle(nameBook);
+        // Buscar el libro por título en la base de datos
+        Book existingBook = repository.findByTitleIgnoreCase(nameBook);
         if (existingBook != null) {
-            System.out.println(existingBook);
-        } else {
-            var json = consumoApi.getDatos(URL_BASE + "?search=" + nameBook.replace(" ", "+"));
-            Data datos = conversor.getDatos(json, Data.class);
+            System.out.println("Libro encontrado en la base de datos:");
+            formatBook(existingBook);
+            return;
+        }
 
-            if (datos != null) {
-                List<DatosBook> datosBooks = BookConverter.convertToDatosBookList(datos);
-                datosBooks.stream()
-                        .findFirst()
-                        .ifPresent(datosBook -> {
-                            Book newBook = new Book(datosBook);
+        // Si no existe localmente, buscar en la API
+        String apiUrl = URL_BASE + "?search=" + nameBook.replace(" ", "+");
+        String json = consumoApi.getDatos(apiUrl);
+        Data datos = conversor.getDatos(json, Data.class);
 
-                            if (newBook.getAuthors() != null && !newBook.getAuthors().isEmpty()) {
-                                List<Author> managedAuthors = new ArrayList<>();
-                                for (Author author : newBook.getAuthors()) {
-                                    // Normalizar a mayúsculas y eliminar comas
-                                    author.setName(author.getName().toUpperCase().replace(",", ""));
-                                    Optional<Author> existingAuthorOptional = authorRepository.findByName(author.getName());
-                                    Author managedAuthor;
-                                    if (existingAuthorOptional.isPresent()) {
-                                        managedAuthor = existingAuthorOptional.get();
-                                    } else {
-                                        managedAuthor = authorRepository.save(author);
-                                    }
-                                    managedAuthors.add(managedAuthor);
-                                }
-                                newBook.setAuthors(managedAuthors);
+        if (datos != null) {
+            List<DatosBook> datosBooks = BookConverter.convertToDatosBookList(datos);
+            datosBooks.stream()
+                    .findFirst()
+                    .ifPresent(datosBook -> {
+                        Book newBook = new Book(datosBook);
+
+                        // Verificar y manejar autores asociados
+                        if (newBook.getAuthors() != null && !newBook.getAuthors().isEmpty()) {
+                            try {
                                 repository.save(newBook);
+                                System.out.println("Libro guardado exitosamente:");
                                 formatBook(newBook);
-                            } else {
-                                System.out.println("El libro no tiene autores asignados, no se puede guardar.");
+                            } catch (DataIntegrityViolationException e) {
+                                // Manejar el caso de clave duplicada (título duplicado)
+                                System.out.println("No se pudo guardar el libro: ya existe un libro con el mismo título.");
                             }
-                        });
-            } else {
-                System.out.println("No se encontró ningún libro con el nombre '" + nameBook + "'.");
-            }
+                        } else {
+                            System.out.println("El libro encontrado no tiene autores asociados, no se guardará.");
+                        }
+                    });
+        } else {
+            System.out.println("No se encontró ningún libro con el nombre '" + nameBook + "'.");
         }
     }
-
 
 
     @Transactional
